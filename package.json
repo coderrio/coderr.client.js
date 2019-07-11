@@ -1,0 +1,49 @@
+{
+  "name": "coderr.client.js",
+  "version": "1.0.0",
+  "description": "Detection/reporting library for Coderr. Coderr analyses and prioritize errors for you, freeing up your time for more important things.",
+  "scripts": {
+    "build": "tsc",
+    "docs": "typedoc --out docs src",
+    "lint": "tslint --project \"./tsconfig.json\"",
+    "lint:fix": "eslint './src/**/*.{ts}'",
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coderrio/coderr.client.js.git"
+  },
+  "keywords": [],
+  "author": "1TCompany AB <hello@coderr.io>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/coderrio/coderr.client.js/issues"
+  },
+  "homepage": "https://coderr.io",
+  "devDependencies": {
+    "@types/node": "^12.6.1",
+    "@typescript-eslint/eslint-plugin": "^1.11.0",
+    "@typescript-eslint/parser": "^1.11.0",
+    "chai": "^4.2.0",
+    "del": "^5.0.0",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "mocha": "^6.1.4",
+    "prettier": "^1.18.2",
+    "rollup": "^1.16.7",
+    "rollup-plugin-commonjs": "^9.1.8",
+    "rollup-plugin-delete": "^1.0.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.21.2",
+    "tslint": "^5.18.0",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.5.3",
+    "uglify-js": "^3.6.0"
+  },
+  "dependencies": {
+    "@types/ua-parser-js": "^0.7.33",
+    "ua-parser-js": "^0.7.20"
+  }
+}
