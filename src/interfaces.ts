@@ -1,16 +1,5 @@
-import { ErrorReportDTO } from './contracts';
-
-/**
- * Used for context collections
- */
-export interface CollectionProperty {
-    /**
-     * Identifier
-     */
-    name: string;
-
-    /** Value */
-    value: string;
+export interface StringDictionary {
+    [key: string]: string;
 }
 
 /**
@@ -24,8 +13,8 @@ export interface ContextCollection {
     /** Name of the collection, like "document" */
     name: string;
 
-    /** All collected properties for the colllection. */
-    properties: CollectionProperty[];
+    /** Collected properties for the colllection. */
+    properties: StringDictionary;
 }
 
 /**

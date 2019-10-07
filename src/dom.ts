@@ -39,7 +39,12 @@ class DomContextFactory implements ErrorReportContextFactory {
 
 export function catchDomErrors(configuration: Configuration) {
     document.addEventListener('error', (event: ErrorEvent) => {
-        const domContext = new DomErrorContext(event.target, event.error, window.document, window);
+        const domContext = new DomErrorContext(
+            event.target,
+            event.error,
+            window.document,
+            window
+        );
         Reporter.instance.reportByContext(domContext);
     });
 
@@ -66,34 +71,52 @@ export class DocumentCollectionProvider implements ContextCollectionProvider {
             return [];
         }
 
-        const doc = toCollection('document', {
-            baseURI: document.baseURI,
-            characterSet: document.characterSet,
-            charset: document.charset,
-            contentType: document.contentType,
-            cookie: document.cookie,
-            body: {
-                clientHeight: document.body.clientHeight,
-                clientLeft: document.body.clientLeft,
-                clientTop: document.body.clientTop,
-                clientWidth: document.body.clientWidth,
-                baseURI: document.body.baseURI,
-                draggable: document.body.draggable,
-                inputMode: document.body.inputMode,
-                offsetHeight: document.body.offsetHeight,
-                offsetLeft: document.body.offsetLeft,
-                offsetParent: document.body.offsetParent,
-                offsetTop: document.body.offsetTop,
-                offsetWidth: document.body.offsetWidth,
-            },
-            fullscreenEnabled: document.fullscreenEnabled,
-            compatMode: document.compatMode,
-            lastModified: document.lastModified,
-            location: document.location.href,
-            readyState: document.readyState,
-            referrer: document.referrer,
-            title: document.title,
-        });
+        let doc = null;
+        if (document.body) {
+            doc = toCollection('document', {
+                baseURI: document.baseURI,
+                characterSet: document.characterSet,
+                charset: document.charset,
+                contentType: document.contentType,
+                cookie: document.cookie,
+                body: {
+                    clientHeight: document.body.clientHeight,
+                    clientLeft: document.body.clientLeft,
+                    clientTop: document.body.clientTop,
+                    clientWidth: document.body.clientWidth,
+                    baseURI: document.body.baseURI,
+                    draggable: document.body.draggable,
+                    inputMode: document.body.inputMode,
+                    offsetHeight: document.body.offsetHeight,
+                    offsetLeft: document.body.offsetLeft,
+                    offsetParent: document.body.offsetParent,
+                    offsetTop: document.body.offsetTop,
+                    offsetWidth: document.body.offsetWidth,
+                },
+                fullscreenEnabled: document.fullscreenEnabled,
+                compatMode: document.compatMode,
+                lastModified: document.lastModified,
+                location: document.location.href,
+                readyState: document.readyState,
+                referrer: document.referrer,
+                title: document.title,
+            });
+        } else {
+            doc = toCollection('document', {
+                baseURI: document.baseURI,
+                characterSet: document.characterSet,
+                charset: document.charset,
+                contentType: document.contentType,
+                cookie: document.cookie,
+                fullscreenEnabled: document.fullscreenEnabled,
+                compatMode: document.compatMode,
+                lastModified: document.lastModified,
+                location: document.location.href,
+                readyState: document.readyState,
+                referrer: document.referrer,
+                title: document.title,
+            });
+        }
 
         return [doc];
     }
@@ -125,11 +148,11 @@ export class NavigatorCollectionProvider implements ContextCollectionProvider {
             browser: {
                 name: parser.getBrowser().name,
                 major: parser.getBrowser().major,
-                version: parser.getBrowser().version
+                version: parser.getBrowser().version,
             },
             OS: {
                 name: parser.getOS().name,
-                version: parser.getOS().version
+                version: parser.getOS().version,
             },
             CPU: {
                 architecture: parser.getCPU().architecture,
@@ -137,12 +160,12 @@ export class NavigatorCollectionProvider implements ContextCollectionProvider {
             device: {
                 model: parser.getDevice().model,
                 type: parser.getDevice().type,
-                version: parser.getBrowser().version
+                version: parser.getBrowser().version,
             },
             engine: {
                 name: parser.getEngine().name,
-                version: parser.getEngine().version
-            }
+                version: parser.getEngine().version,
+            },
         });
 
         return [col, uaCollection];

@@ -14,6 +14,7 @@ export default [
                 format: 'iife',
             },
             { file: 'dist/coderr.browser.min.js', format: 'es', sourcemap: true },
+            { file: 'dist/coderr.esm.js', format: 'es', sourcemap: true },
         ],
         plugins: [
             del({ targets: 'dist/*' }),

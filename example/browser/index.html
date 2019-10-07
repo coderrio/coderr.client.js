@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <script src="coderr.browser.js"></script>
+        <script>
+            var config = new coderr.Configuration("http://localhost:50473/", "f7aeacfdbe5447cdada6aa9ee21d24fb");
+            var reporter = new coderr.Coderr(config);
+            reporter.catchDomErrors();
+
+            // Manual reporting
+            try {
+                var a = 10 / 0;
+            }
+            catch (err){
+                reporter.report(err, {userName: "arne"});
+            }
+        </script>
+    </head>
+</html>

@@ -3,6 +3,7 @@
 export {toCollection} from './functions';
 // export {catchDomErrors} from './dom';
 export { Configuration } from './reporting';
+export { ErrorReportDTO } from './contracts';
 
 import { Configuration, Reporter } from './reporting';
 import { catchDomErrors as d } from './dom';
@@ -18,8 +19,8 @@ export class Coderr {
         d(this.config);
     }
 
-    public report(error: Error) {
-        this.reporter.reportErr(error);
+    public report(error: Error, contextData?: any) {
+        this.reporter.reportErr(error, contextData);
     }
 }
 
