@@ -79,6 +79,7 @@ export class Reporter {
         ) {
             this.configuration.environmentName = 'Development';
         }
+        Reporter.instance = this;
     }
 
     public reportErr(error: Error, contextData: any = null) {

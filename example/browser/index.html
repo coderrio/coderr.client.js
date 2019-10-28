@@ -2,16 +2,19 @@
     <head>
         <script src="coderr.browser.js"></script>
         <script>
-            var config = new coderr.Configuration("http://localhost:50473/", "f7aeacfdbe5447cdada6aa9ee21d24fb");
+            var config = new coderr.Configuration("http://localhost:50473/", "8ffd506b153f4ca690daaf6abd5fdcdf");
             var reporter = new coderr.Coderr(config);
             reporter.catchDomErrors();
+			
+			// automatic error detection
+			one.true.error.one();
 
             // Manual reporting
             try {
-                var a = 10 / 0;
+                one.true.error();
             }
             catch (err){
-                reporter.report(err, {userName: "arne"});
+                //reporter.report(err, {userName: "arne"});
             }
         </script>
     </head>
