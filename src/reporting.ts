@@ -83,6 +83,7 @@ export class Reporter implements IReporter {
         ) {
             this.configuration.environmentName = 'Development';
         }
+        Reporter.instance = this;
     }
 
     public reportErr(error: Error, contextData: any = null) {

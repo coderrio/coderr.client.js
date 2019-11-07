@@ -38,7 +38,7 @@ class DomContextFactory implements ErrorReportContextFactory {
 }
 
 export function catchDomErrors(configuration: Configuration) {
-    document.addEventListener('error', (event: ErrorEvent) => {
+    window.addEventListener('error', (event: ErrorEvent) => {
         const domContext = new DomErrorContext(
             event.target,
             event.error,

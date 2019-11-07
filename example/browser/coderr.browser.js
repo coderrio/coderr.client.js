@@ -1,14 +1,16 @@
 var coderr = (function (exports) {
     'use strict';
 
-    function toCollection(collectionName, anyObject) {
-        var props = [];
+    function toCollection(collectionName, anyObject, removeUndefined) {
+        if (removeUndefined === void 0) { removeUndefined = false; }
+        var props = {};
         function addItem(name, value) {
             if (Array.isArray(value)) {
                 value.forEach(function (item, index) {
                     addItem(name + "[" + index + "]", item);
                 });
             }
+            else if (typeof value === 'function') ;
             else if (typeof value === 'object') {
                 for (var key in value) {
                     if (!value.hasOwnProperty(key)) {
@@ -24,7 +26,20 @@ var coderr = (function (exports) {
                 }
             }
             else {
-                props.push({ name: name, value: value });
+                var valueStr = void 0;
+                if (typeof value === 'undefined') {
+                    if (removeUndefined) {
+                        return;
+                    }
+                    valueStr = 'undefined';
+                }
+                else if (value === null) {
+                    valueStr = 'null';
+                }
+                else {
+                    valueStr = value.toString();
+                }
+                props[name] = valueStr;
             }
         }
         addItem('', anyObject);
@@ -35,19 +50,25 @@ var coderr = (function (exports) {
             return false;
         }
         var result = false;
-        var element = new Image();
-        element.__defineGetter__('id', function () {
-            result = true;
-        });
-        console.log(element);
+        try {
+            var element = new Image();
+            element.__defineGetter__('id', function () {
+                result = true;
+            });
+            console.log(element);
+        }
+        catch (_a) {
+            // probably that the Image could not be created,
+            // so ignore the error as we wont have dev tools then.
+        }
         return result;
     }
     // source: https://stackoverflow.com/questions/3231459/create-unique-id-with-javascript
     function uniqueid() {
         // always start with a letter (for DOM friendlyness)
-        var idstr = String.fromCharCode(Math.floor((Math.random() * 25) + 65));
+        var idstr = String.fromCharCode(Math.floor(Math.random() * 25 + 65));
         do {
-            var asciiCode = Math.floor((Math.random() * 42) + 48);
+            var asciiCode = Math.floor(Math.random() * 42 + 48);
             if (asciiCode < 58 || asciiCode > 64) {
                 // exclude all chars between : (58) and @ (64)
                 idstr += String.fromCharCode(asciiCode);
@@ -82,15 +103,18 @@ var coderr = (function (exports) {
         return Configuration;
     }());
     var Reporter = /** @class */ (function () {
-        function Reporter(configuration) {
+        function Reporter(configuration, uploader) {
             this.configuration = configuration;
+            this.uploader = uploader;
             if (this.configuration.environmentName === '' &&
                 detectDeveloperTools()) {
                 this.configuration.environmentName = 'Development';
             }
+            Reporter.instance = this;
         }
         Reporter.prototype.reportErr = function (error, contextData) {
             var _this = this;
+            if (contextData === void 0) { contextData = null; }
             var ctx = new VanillaContext(this, error);
             this.configuration.contextFactories.forEach(function (element) {
                 if (!element.canHandle(_this, error)) {
@@ -98,9 +122,30 @@ var coderr = (function (exports) {
                 }
                 ctx = element.createContext(_this, error);
             });
-            if (contextData){
-                var col = toCollection('ContextData', contextData);
-                ctx.contextCollections.push(col);
+            if (contextData) {
+                if (Array.isArray(contextData)) {
+                    contextData.forEach(function (x, index) {
+                        if (!x.name || !x.properties) {
+                            if (index === 0) {
+                                x = toCollection('ContextData', x);
+                            }
+                            else {
+                                x = toCollection('ContextData' + (index + 1), x);
+                            }
+                        }
+                        ctx.contextCollections.push(x);
+                    });
+                }
+                else {
+                    var collection = void 0;
+                    if (!contextData.name || !contextData.properties) {
+                        collection = toCollection('ContextData', contextData);
+                    }
+                    else {
+                        collection = contextData;
+                    }
+                    ctx.contextCollections.push(collection);
+                }
             }
             this.reportByContext(ctx);
         };
@@ -122,18 +167,33 @@ var coderr = (function (exports) {
         };
         Reporter.prototype.upload = function (report) {
             var url = this.configuration.serverUrl + "receiver/report/" + this.configuration.appKey + "/";
-            var httpRequest = new XMLHttpRequest();
-            httpRequest.open('POST', url, true);
-            httpRequest.setRequestHeader('Content-type', 'application/json');
-            httpRequest.setRequestHeader('X-Library', 'javascript');
-            var data = JSON.stringify(report);
-            httpRequest.send(data);
+            var uploader = this.uploader || this.configuration.uploader;
+            if (uploader) {
+                uploader({
+                    appKey: this.configuration.appKey,
+                    report: report,
+                    url: this.configuration.serverUrl,
+                });
+            }
+            else {
+                var data = JSON.stringify(report);
+                var httpRequest = new XMLHttpRequest();
+                httpRequest.open('POST', url, true);
+                httpRequest.setRequestHeader('Content-type', 'application/json');
+                httpRequest.setRequestHeader('X-Library', 'javascript');
+                httpRequest.send(data);
+            }
         };
         Reporter.prototype.convertCollections = function (collections) {
             var dtos = [];
             collections.forEach(function (item) {
                 var dict = {};
-                item.properties.forEach(function (x) { return (dict[x.name] = x.value); });
+                for (var key in item.properties) {
+                    if (item.properties.hasOwnProperty(key)) {
+                        var value = item.properties[key];
+                        dict[key] = value;
+                    }
+                }
                 var dto = {
                     Name: item.name,
                     Properties: dict,
@@ -1093,7 +1153,7 @@ var coderr = (function (exports) {
         return DomContextFactory;
     }());
     function catchDomErrors(configuration) {
-        document.addEventListener('error', function (event) {
+        window.addEventListener('error', function (event) {
             var domContext = new DomErrorContext(event.target, event.error, window.document, window);
             Reporter.instance.reportByContext(domContext);
         });
@@ -1117,40 +1177,53 @@ var coderr = (function (exports) {
             if (!document) {
                 return [];
             }
-            var doc = toCollection('document', {
-                baseURI: document.baseURI,
-                characterSet: document.characterSet,
-                charset: document.charset,
-                contentType: document.contentType,
-                cookie: document.cookie,
-                fullscreenEnabled: document.fullscreenEnabled,
-                compatMode: document.compatMode,
-                lastModified: document.lastModified,
-                location: document.location.href,
-                readyState: document.readyState,
-                referrer: document.referrer,
-                title: document.title,
-            });
-
-            if (!document.body){
-                console.log('no body', document);
-            }else{
-                doc.body = {
-                    clientHeight: document.body.clientHeight,
-                    clientLeft: document.body.clientLeft,
-                    clientTop: document.body.clientTop,
-                    clientWidth: document.body.clientWidth,
-                    baseURI: document.body.baseURI,
-                    draggable: document.body.draggable,
-                    inputMode: document.body.inputMode,
-                    offsetHeight: document.body.offsetHeight,
-                    offsetLeft: document.body.offsetLeft,
-                    offsetParent: document.body.offsetParent,
-                    offsetTop: document.body.offsetTop,
-                    offsetWidth: document.body.offsetWidth,
-                };
+            var doc = null;
+            if (document.body) {
+                doc = toCollection('document', {
+                    baseURI: document.baseURI,
+                    characterSet: document.characterSet,
+                    charset: document.charset,
+                    contentType: document.contentType,
+                    cookie: document.cookie,
+                    body: {
+                        clientHeight: document.body.clientHeight,
+                        clientLeft: document.body.clientLeft,
+                        clientTop: document.body.clientTop,
+                        clientWidth: document.body.clientWidth,
+                        baseURI: document.body.baseURI,
+                        draggable: document.body.draggable,
+                        inputMode: document.body.inputMode,
+                        offsetHeight: document.body.offsetHeight,
+                        offsetLeft: document.body.offsetLeft,
+                        offsetParent: document.body.offsetParent,
+                        offsetTop: document.body.offsetTop,
+                        offsetWidth: document.body.offsetWidth,
+                    },
+                    fullscreenEnabled: document.fullscreenEnabled,
+                    compatMode: document.compatMode,
+                    lastModified: document.lastModified,
+                    location: document.location.href,
+                    readyState: document.readyState,
+                    referrer: document.referrer,
+                    title: document.title,
+                });
             }
-
+            else {
+                doc = toCollection('document', {
+                    baseURI: document.baseURI,
+                    characterSet: document.characterSet,
+                    charset: document.charset,
+                    contentType: document.contentType,
+                    cookie: document.cookie,
+                    fullscreenEnabled: document.fullscreenEnabled,
+                    compatMode: document.compatMode,
+                    lastModified: document.lastModified,
+                    location: document.location.href,
+                    readyState: document.readyState,
+                    referrer: document.referrer,
+                    title: document.title,
+                });
+            }
             return [doc];
         };
         return DocumentCollectionProvider;
@@ -1179,11 +1252,11 @@ var coderr = (function (exports) {
                 browser: {
                     name: parser.getBrowser().name,
                     major: parser.getBrowser().major,
-                    version: parser.getBrowser().version
+                    version: parser.getBrowser().version,
                 },
                 OS: {
                     name: parser.getOS().name,
-                    version: parser.getOS().version
+                    version: parser.getOS().version,
                 },
                 CPU: {
                     architecture: parser.getCPU().architecture,
@@ -1191,12 +1264,12 @@ var coderr = (function (exports) {
                 device: {
                     model: parser.getDevice().model,
                     type: parser.getDevice().type,
-                    version: parser.getBrowser().version
+                    version: parser.getBrowser().version,
                 },
                 engine: {
                     name: parser.getEngine().name,
-                    version: parser.getEngine().version
-                }
+                    version: parser.getEngine().version,
+                },
             });
             return [col, uaCollection];
         };
