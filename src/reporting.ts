@@ -66,8 +66,12 @@ export class Configuration {
     }
 }
 
-export class Reporter {
-    public static instance: Reporter;
+export interface IReporter {
+    reportByContext(context: ContextCollectionProviderContext): void;
+}
+
+export class Reporter implements IReporter {
+    public static instance: IReporter;
 
     constructor(
         private configuration: Configuration,

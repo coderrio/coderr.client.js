@@ -24,14 +24,15 @@ function generateReport() {
     };
     return report;
 }
+const contextSkeleton: IReportUploaderContext = {
+    url: '',
+    appKey: '',
+    report: generateReport(),
+};
 
 describe('Attaching contextData when reporting', () => {
     it('should able to include one contextCollection', () => {
-        let myContext: IReportUploaderContext = {
-            url: '',
-            appKey: '',
-            report: generateReport(),
-        };
+        let myContext = contextSkeleton;
         const sut = new Reporter(new Configuration('aa', 'bb'), ctx => {
             myContext = ctx;
         });
@@ -47,11 +48,7 @@ describe('Attaching contextData when reporting', () => {
         expect(actual.Properties).to.have.property('FirstName', 'Arne');
     });
     it('should able to include multiple properties in a contextCollection', () => {
-        let myContext: IReportUploaderContext = {
-            url: '',
-            appKey: '',
-            report: generateReport(),
-        };
+        let myContext = contextSkeleton;
         const sut = new Reporter(new Configuration('aa', 'bb'), ctx => {
             myContext = ctx;
         });
@@ -68,11 +65,7 @@ describe('Attaching contextData when reporting', () => {
         expect(actual.Properties).to.have.property('LastName', 'Gusten');
     });
     it('should able to include two contextCollection', () => {
-        let myContext: IReportUploaderContext = {
-            url: '',
-            appKey: '',
-            report: generateReport(),
-        };
+        let myContext = contextSkeleton;
         const sut = new Reporter(new Configuration('aa', 'bb'), ctx => {
             myContext = ctx;
         });
@@ -95,11 +88,7 @@ describe('Attaching contextData when reporting', () => {
         expect(actual2.Properties).to.have.property('Direction', 'North');
     });
     it('should able to include one object', () => {
-        let myContext: IReportUploaderContext = {
-            url: '',
-            appKey: '',
-            report: generateReport(),
-        };
+        let myContext = contextSkeleton;
         const sut = new Reporter(new Configuration('aa', 'bb'), ctx => {
             myContext = ctx;
         });
@@ -115,11 +104,7 @@ describe('Attaching contextData when reporting', () => {
         expect(actual.Properties).to.have.property('Age', '99');
     });
     it('should able to include multiple properties in an object', () => {
-        let myContext: IReportUploaderContext = {
-            url: '',
-            appKey: '',
-            report: generateReport(),
-        };
+        let myContext = contextSkeleton;
         const sut = new Reporter(new Configuration('aa', 'bb'), ctx => {
             myContext = ctx;
         });
@@ -136,11 +121,7 @@ describe('Attaching contextData when reporting', () => {
         expect(actual.Properties).to.have.property('name', 'Name');
     });
     it('should able to include two objects', () => {
-        let myContext: IReportUploaderContext = {
-            url: '',
-            appKey: '',
-            report: generateReport(),
-        };
+        let myContext = contextSkeleton;
         const sut = new Reporter(new Configuration('aa', 'bb'), ctx => {
             myContext = ctx;
         });
