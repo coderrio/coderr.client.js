@@ -1,3 +1,15 @@
+.editorconfig
+.eslintignore
+.eslintrc.json
+.gitattributes
+.gitignore
+.npmignore
+.prettierignore
+.prettierrc
 .rpt2_cache
+tests\**
 docs
 example
+src
+*.tgz
+*.cmd

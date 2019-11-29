@@ -49,7 +49,7 @@ export interface ErrorReportDTO {
      * If this error was reported in "Production", "Test" or "Development"
      * (or whatever your own environments are named).
      */
-    EnviromentName: string;
+    EnvironmentName: string;
 
     /**
      * Error information

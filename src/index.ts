@@ -1,14 +1,15 @@
 // export * from './interfaces';
 // export * from './contracts';
-export {toCollection} from './functions';
+export { toCollection, appendToCollection } from './functions';
+export { ContextCollection } from './interfaces';
 // export {catchDomErrors} from './dom';
-export { Configuration } from './reporting';
+export { Configuration, getCoderrCollection } from './reporting';
 export { ErrorReportDTO } from './contracts';
 
 import { Configuration, Reporter } from './reporting';
 import { catchDomErrors as d } from './dom';
 
-export class Coderr {
+export class CoderrClient {
     private reporter: Reporter;
 
     constructor(private config: Configuration) {

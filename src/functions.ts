@@ -5,12 +5,43 @@ export function toCollection(
     anyObject: any,
     removeUndefined: boolean = false
 ): ContextCollection {
-    const props: any = {};
+    var collection = {name: collectionName, properties: {}};
+    appendToCollection(collection, '', anyObject, removeUndefined);
+    return collection;
+}
 
-    function addItem(name: string, value: any) {
+export function appendToCollection(
+    collection: ContextCollection,
+    propertyPrefix: string,
+    anyObject: any,
+    removeUndefined: boolean = false
+): void {
+    var guard: string[] = [];
+    appendToCollectionInner(collection, propertyPrefix, anyObject, guard, removeUndefined);
+}
+
+function appendToCollectionInner(
+    collection: ContextCollection,
+    propertyPrefix: string,
+    anyObject: any,
+    guard: string[],
+    removeUndefined: boolean = false
+): void {
+    const props = collection.properties;
+
+    function addItem(name: string, value: any, guard: string[]): boolean {
+        guard.push(name);
+        if (name.length > 20) {
+            props[name] = 'Too many nested levels: ' + guard.join(' -> ');
+            return false;
+        }
+
         if (Array.isArray(value)) {
             value.forEach((item, index) => {
-                addItem(`${name}[${index}]`, item);
+                if (!addItem(`${name}[${index}]`, item, guard))
+                {
+                    return false;
+                }
             });
         } else if (typeof value === 'function') {
             // ignore functions
@@ -28,13 +59,16 @@ export function toCollection(
                     propName = key;
                 }
 
-                addItem(propName, childValue);
+                if (!addItem(propName, childValue, guard)){
+                    return false;
+                }
             }
         } else {
             let valueStr: string;
             if (typeof value === 'undefined') {
                 if (removeUndefined) {
-                    return;
+                    guard.pop();
+                    return true;
                 }
                 valueStr = 'undefined';
             } else if (value === null) {
@@ -44,10 +78,13 @@ export function toCollection(
             }
             props[name] = valueStr;
         }
+
+        guard.pop();
+        return true;
     }
 
-    addItem('', anyObject);
-    return { name: collectionName, properties: props };
+    addItem(propertyPrefix, anyObject, guard);
+    guard.pop();
 }
 
 export function detectDeveloperTools(): boolean {

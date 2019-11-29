@@ -147,8 +147,8 @@ export class NavigatorCollectionProvider implements ContextCollectionProvider {
             userAgent: navigator.userAgent,
             appName: navigator.appName,
             appVersion: navigator.appVersion,
-            authentication: navigator.authentication,
             cookieEnabled: navigator.cookieEnabled,
+            language: navigator.language,
             platform: navigator.platform,
             product: navigator.product,
             productSub: navigator.productSub,
@@ -216,15 +216,22 @@ class WindowProvider implements ContextCollectionProvider {
         const col = toCollection('window', {
             location: window.location.href,
             innerWidth: window.innerWidth,
-            URL: window.URL,
-            URLSearchParams: window.URLSearchParams,
             innerHeight: window.innerHeight,
-            clientHeight: window.addEventListener,
             devicePixelRatio: window.devicePixelRatio,
+			fullScreen: (<any>window).fullScreen,
+			name: window.name,
             outerHeight: window.outerHeight,
             outerWidth: window.outerWidth,
+			pageXOffset: window.pageXOffset,
+			pageYOffset: window.pageYOffset,
+			screenX: window.screenX,
+			screenY: window.screenY,
             scrollX: window.scrollX,
             scrollY: window.scrollY,
+			status: window.status,
+			statusbar: window.statusbar,
+			toolbar: window.toolbar,
+			top: window.top
         });
         return [col];
     }
