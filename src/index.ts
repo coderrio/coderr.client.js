@@ -1,28 +1,12 @@
-// export * from './interfaces';
-// export * from './contracts';
-export { toCollection, appendToCollection } from './functions';
-export { ContextCollection } from './interfaces';
-// export {catchDomErrors} from './dom';
-export { Configuration, getCoderrCollection } from './reporting';
-export { ErrorReportDTO } from './contracts';
+import * as m from './main';
+import { HttpsUploader } from './uploaders/node-uploader';
 
-import { Configuration, Reporter } from './reporting';
-import { catchDomErrors as d } from './dom';
+export * from './main';
 
-export class CoderrClient {
-    private reporter: Reporter;
-
-    constructor(private config: Configuration) {
-        this.reporter = new Reporter(config);
+m.setUploaderFactory((url: string, key: string, secret?: string) => {
+    if (!secret) {
+        throw new Error('The Node.js configuration must have a sharedSecret.');
     }
 
-    public catchDomErrors() {
-        d(this.config);
-    }
-
-    public report(error: Error, contextData?: any) {
-        this.reporter.reportErr(error, contextData);
-    }
-}
-
-// (window as any).coderr = createCoderr;
+    return new HttpsUploader(url, key, secret);
+});

@@ -1,74 +1,90 @@
 # JavaScript library for Coderr
 
-This library is currently avilable as a release candidate. Feel free to try it, and please give us feedback.
+This library is currently available as a release candidate. Feel free to try it, and please give us feedback.
+
+![](./docs/telemetry.gif)
 
 https://coderr.io
 
-## Examples
 
-The following examples are just demonstrating basic usage:
+This library supports NodeJS and the browser (es6 module). There are also integration libraries that pick up errors automatically from Express, Angular etc.
 
-### Using plain browser scripts
+## Installation
 
-```html
-<html>
-    <head>
-        <script src="coderr.browser.js"></script>
-        <script>
-            // Setup
-            var config = new coderr.Configuration("https://report.coderr.io", "f7aeacfdbe5447cdada6aa9ee21d24fb");
-            var reporter = new coderr.Coderr(config);
+Download this package:
 
-            // report all unhandled errors
-            reporter.catchDomErrors();
-
-
-
-            // This is how manual reporting is done.
-            // 
-            // In this case not really nessacary since 
-            // "catchDomErrors" would have reported it.
-            try {
-                var a = 10 / 0;
-            }
-            catch (err){
-                reporter.report(err, {userName: "arne"});
-            }
-        </script>
-    </head>
-</html>
-```` 
-
-**From the Coderr Server UI**
-
-![](docs/error_example.png)
-
-Example showing the "userAgent" context collection.
-
-For browsers, Coderr automatically includes information about the window, document, cookies, navigator and screen.
-
-## Using TypeScript
-
-```typescript
-import { CoderrClient, Configuration } from "coderr.client";
-import { catchVueErrors } from "./Coderr.Vue"
-
-var config = new Configuration("https://report.coderr.io/", "8ffd506b153f4ca690daaf6abd5fdcdf");
-config.environmentName = 'production';
-config.applicationVersion = 'v1.0';
-
-var client = new CoderrClient(config);
-client.catchDomErrors();
-catchVueErrors(client);
+```js
+npm -I coderr.client
 ```
 
-**Result**
+Add it to your application:
 
-![](docs/vue.png)
+```js
+import * as coderr from "coderr.client";
 
-For VueJs, Coderr collections information about the failing component, the HTML for the rendered component view, selected routes and more.
+coderr.configure("https://reporting.coderr.io", "yourAppKey");
+```
+
+DOM errors will now automatically be reported (for browser-based applications).
+
+To report errors:
+
+```js
+import * as coderr from "coderr.client";
+
+try {
+    // Do something
+    // or to just test:
+    throw new Error("Something failed!");
+}
+catch (e) {
+    // You can attach any kind of data.
+    coderr.report(e, {userId: 11, address: { City: "Falun" }});
+}
+```
+
+## Configuration
+
+Coderr detects the environment (production/development) automatically when running in node,
+for all other types of applications, specify it:
+
+```js
+import * as coderr from "coderr.client";
+
+coderr.configuration.environment = 'production';
+```
+
+### Application version
+
+To see which application version an error exist, specify it:
+
+```js
+import * as coderr from "coderr.client";
+
+coderr.configuration.applicationVersion = '1.1.3';
+```
 
 
-# Questions
+# Example, integration library
 
-https://discuss.coderr.io
+You can, for instance, install the Express package:
+
+```js
+npm -I coderr.client.expressjs
+```
+
+And then activate it:
+
+```js
+import { credentials } from "coderr.client";
+import { HttpError, errorMiddleware } from "coderr.client.expressjs";
+
+
+credentials("https://coderr.io", "yourAppKey", "yourSharedSecret");
+```
+
+Finally, activate the error middleware as the last middleware:
+
+```
+app.use(errorMiddleware);
+```

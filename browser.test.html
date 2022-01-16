@@ -1,0 +1,23 @@
+<html>
+<head>
+  <script src="./dist/browser.js"></script>
+</head>
+
+<body>
+  <script>
+    coderr.configure("https://report.coderr.io", "f7aeacfdbe5447cdada6aa9ee21d24fb");
+
+    try {
+      var a = null;
+      a();
+    }
+    catch (err) {
+      console.log('reporting', coderr.report);
+      coderr.report(err, { userName: "arne" });
+    }
+
+  </script>
+  Open the devtools 👇
+</body>
+
+</html>

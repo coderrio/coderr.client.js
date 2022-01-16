@@ -9,37 +9,72 @@ export interface StringDictionary {
  * that is included in an error report.
  * A collection might contain everything from the document object or the UserAgent
  */
-export interface ContextCollection {
+export interface IContextCollection {
     /** Name of the collection, like "document" */
     name: string;
 
-    /** Collected properties for the colllection. */
+    /** Collected properties for the collection. */
     properties: StringDictionary;
+}
+
+/**
+ * Log entries can be attached to an error. Only at most 100 log entries are processed by coderr (i.e. only attach the most recent before the error happened.)
+ */
+export interface ILogEntry {
+    /**
+     *  0 = trace, 1 = debug, 2 = info, 3 = warning, 4 = error, 5 = critical
+     */
+    logLevel: number;
+
+    /**
+     * Logged message.
+     */
+    message: string;
+
+    /**
+     * Type that wrote the log message.
+     */
+    source?: string;
+
+    /**
+     * When the entry was written (should be in ISO 8601 format, i.e. myDate.toIsoString())
+     */
+    timestampUtc: string;
+
+    /** String representation of a logged error. */
+    error?: string;
 }
 
 /**
  * Context for @see ContextCollectionProvider
  */
-export interface ContextCollectionProviderContext {
+export interface IContextCollectionProviderContext {
     /**
      * Type of provider context, for instance "DOM" or "Vue"
      */
-    contextType: string;
+    get contextType(): string;
 
     /**
      * Object that detected the error.
      */
-    source: any;
+    get source(): any;
 
     /**
      * Caught error.
      */
-    error: Error;
+    get error(): Error;
 
     /**
      * One or more collections that either were provided when the error was reported.
+     *
+     * Add additional contexts to this collection.
      */
-    contextCollections: ContextCollection[];
+    contextCollections: IContextCollection[];
+
+    /**
+     * Log entries that was attached to the report.
+     */
+    logEntries: ILogEntry[];
 }
 
 /**
@@ -47,7 +82,7 @@ export interface ContextCollectionProviderContext {
  *
  * Providers are invoked when we want to know why an error.
  */
-export interface ContextCollectionProvider {
+export interface IContextCollectionProvider {
     /**
      * Collect information
      * @param context Different types of contexts can be passed to the method depending on
@@ -56,11 +91,5 @@ export interface ContextCollectionProvider {
      *                The context.contextType property identifies the type of context.
      * @returns empty array if no information was collected
      */
-    collect(context: ContextCollectionProviderContext): ContextCollection[];
-}
-
-/** Generates the context with is passed through the pipeline to collect context collections */
-export interface ErrorReportContextFactory {
-    canHandle(source: any, error: Error): boolean;
-    createContext(source: any, error: Error): ContextCollectionProviderContext;
+    collect(context: IContextCollectionProviderContext): void;
 }

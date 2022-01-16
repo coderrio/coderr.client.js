@@ -1,16 +1,19 @@
 import {
-    ContextCollectionProviderContext,
-    ContextCollection,
-    ContextCollectionProvider,
-    ErrorReportContextFactory,
-} from './interfaces';
-import { toCollection } from './functions';
-import { Configuration, Reporter } from './reporting';
+    IContextCollectionProviderContext,
+    IContextCollection,
+    IContextCollectionProvider,
+    ILogEntry,
+} from './context-collections/interfaces';
+import { Reporter } from './reports/reporting';
 import * as ua from 'ua-parser-js';
-
-export class DomErrorContext implements ContextCollectionProviderContext {
+import { Configuration } from './config/configuration';
+import { toCollection } from './context-collections';
+/**
+ * Used to provide access to DOM specific information when collecting telemetry.
+ */
+export class DomErrorContext implements IContextCollectionProviderContext {
     public contextType: string = 'DOM';
-    public contextCollections: ContextCollection[] = [];
+    public contextCollections: IContextCollection[] = [];
 
     constructor(
         public source: any,
@@ -18,52 +21,37 @@ export class DomErrorContext implements ContextCollectionProviderContext {
         public document: Document,
         public window: Window
     ) {}
+    logEntries: ILogEntry[] = [];
 }
 
-class DomContextFactory implements ErrorReportContextFactory {
-    public canHandle(source: any, error: Error): boolean {
-        if (window) {
-            return true;
-        }
+var registered = false;
 
-        return source instanceof DomErrorContext;
-    }
-
-    public createContext(
-        source: any,
-        error: Error
-    ): ContextCollectionProviderContext {
-        return new DomErrorContext(source, error, window.document, window);
-    }
-}
-
+/**
+ * Tell Coderr to automatically report DOM errors to the server for further analysis.
+ * @param configuration The config instance.
+ */
 export function catchDomErrors(configuration: Configuration) {
-    window.document.addEventListener('error', (event: ErrorEvent) => {
-        console.log('ERROR#¤#"¤¤#"!');
-        const domContext = new DomErrorContext(
-            event.target,
-            event.error,
-            window.document,
-            window
-        );
+    if (registered) {
+        return;
+    }
+    registered = true;
+
+    document.addEventListener('error', (event: ErrorEvent) => {
+        const domContext = new DomErrorContext(event.target, event.error, window.document, window);
         Reporter.instance.reportByContext(domContext);
     });
     window.addEventListener('error', (event: ErrorEvent) => {
-        console.log('ERROR#¤#"¤¤#"!');
-        const domContext = new DomErrorContext(
-            event.target,
-            event.error,
-            window.document,
-            window
-        );
+        const domContext = new DomErrorContext(event.target, event.error, window.document, window);
         Reporter.instance.reportByContext(domContext);
     });
 
-    configuration.contextFactories.push(new DomContextFactory());
     registerDomProviders(configuration.providers);
 }
 
-function registerDomProviders(providers: ContextCollectionProvider[]) {
+/***
+ * Register telemetry providers that collects DOM specific data (about the browser, document, screen size etc).
+ */
+function registerDomProviders(providers: IContextCollectionProvider[]) {
     providers.push(new DocumentCollectionProvider());
     providers.push(new NavigatorCollectionProvider());
     providers.push(new WindowProvider());
@@ -73,13 +61,11 @@ function registerDomProviders(providers: ContextCollectionProvider[]) {
 /**
  * Adds a collection named 'document' with properties from DOM document (and document.body).
  */
-export class DocumentCollectionProvider implements ContextCollectionProvider {
-    public collect(
-        context: ContextCollectionProviderContext
-    ): ContextCollection[] {
+export class DocumentCollectionProvider implements IContextCollectionProvider {
+    public collect(context: IContextCollectionProviderContext): void {
         const document = (context as DomErrorContext).document;
         if (!document) {
-            return [];
+            return;
         }
 
         let doc = null;
@@ -87,7 +73,6 @@ export class DocumentCollectionProvider implements ContextCollectionProvider {
             doc = toCollection('document', {
                 baseURI: document.baseURI,
                 characterSet: document.characterSet,
-                charset: document.charset,
                 contentType: document.contentType,
                 cookie: document.cookie,
                 body: {
@@ -116,7 +101,6 @@ export class DocumentCollectionProvider implements ContextCollectionProvider {
             doc = toCollection('document', {
                 baseURI: document.baseURI,
                 characterSet: document.characterSet,
-                charset: document.charset,
                 contentType: document.contentType,
                 cookie: document.cookie,
                 fullscreenEnabled: document.fullscreenEnabled,
@@ -129,30 +113,28 @@ export class DocumentCollectionProvider implements ContextCollectionProvider {
             });
         }
 
-        return [doc];
+        context.contextCollections.push(doc);
     }
 }
 
-export class NavigatorCollectionProvider implements ContextCollectionProvider {
-    public collect(
-        context: ContextCollectionProviderContext
-    ): ContextCollection[] {
-        const navigator = (context as DomErrorContext).window.navigator;
-        if (!navigator) {
-            return [];
+/**
+ * Collects userAgent data (version, language, vendor,  if cookies are enabled) and userAgent data (CPU, OS, browser, device)
+ */
+export class NavigatorCollectionProvider implements IContextCollectionProvider {
+    public collect(context: IContextCollectionProviderContext): void {
+        const window = (context as DomErrorContext).window;
+        if (!window || !window.navigator) {
+            return;
         }
+        const navigator = window.navigator;
 
         const col = toCollection('navigator', {
-            appCodeName: navigator.appCodeName,
             userAgent: navigator.userAgent,
-            appName: navigator.appName,
-            appVersion: navigator.appVersion,
             cookieEnabled: navigator.cookieEnabled,
             language: navigator.language,
-            platform: navigator.platform,
-            product: navigator.product,
-            productSub: navigator.productSub,
+            vendor: navigator.vendor,
         });
+        context.contextCollections.push(col);
 
         const parser = new ua.UAParser(navigator.userAgent);
         const uaCollection = toCollection('userAgent', {
@@ -178,19 +160,20 @@ export class NavigatorCollectionProvider implements ContextCollectionProvider {
                 version: parser.getEngine().version,
             },
         });
-
-        return [col, uaCollection];
+        context.contextCollections.push(uaCollection);
     }
 }
 
-export class ScreenCollectionProvider implements ContextCollectionProvider {
-    public collect(
-        context: ContextCollectionProviderContext
-    ): ContextCollection[] {
-        const screen = (context as DomErrorContext).window.screen;
-        if (!screen) {
-            return [];
+/**
+ * Collects information about the screen (total width/height, available width/height, pixelDepth, colorDepth).
+ */
+export class ScreenCollectionProvider implements IContextCollectionProvider {
+    public collect(context: IContextCollectionProviderContext): void {
+        const window = (context as DomErrorContext).window;
+        if (!window || !window.screen) {
+            return;
         }
+        const screen = window.screen;
 
         const col = toCollection('screen', {
             availHeight: screen.availHeight,
@@ -200,17 +183,18 @@ export class ScreenCollectionProvider implements ContextCollectionProvider {
             width: screen.width,
             pixelDepth: screen.pixelDepth,
         });
-        return [col];
+        context.contextCollections.push(col);
     }
 }
 
-class WindowProvider implements ContextCollectionProvider {
-    public collect(
-        context: ContextCollectionProviderContext
-    ): ContextCollection[] {
+/**
+ * Collects information about the window (location, inner width/height, pixelRatio, isFullScreen, name, outer width/height, screen x/y, scroll x/y, if toolbar/status bar is visible).
+ */
+class WindowProvider implements IContextCollectionProvider {
+    public collect(context: IContextCollectionProviderContext): void {
         const window = (context as DomErrorContext).window;
         if (!window) {
-            return [];
+            return;
         }
 
         const col = toCollection('window', {
@@ -218,21 +202,18 @@ class WindowProvider implements ContextCollectionProvider {
             innerWidth: window.innerWidth,
             innerHeight: window.innerHeight,
             devicePixelRatio: window.devicePixelRatio,
-			fullScreen: (<any>window).fullScreen,
-			name: window.name,
+            fullScreen: (<any>window).fullScreen,
+            name: window.name,
             outerHeight: window.outerHeight,
             outerWidth: window.outerWidth,
-			pageXOffset: window.pageXOffset,
-			pageYOffset: window.pageYOffset,
-			screenX: window.screenX,
-			screenY: window.screenY,
+            screenX: window.screenX,
+            screenY: window.screenY,
             scrollX: window.scrollX,
             scrollY: window.scrollY,
-			status: window.status,
-			statusbar: window.statusbar,
-			toolbar: window.toolbar,
-			top: window.top
+            statusbar: window.statusbar,
+            toolbar: window.toolbar,
+            top: window.top,
         });
-        return [col];
+        context.contextCollections.push(col);
     }
 }

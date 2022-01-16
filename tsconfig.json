@@ -1,31 +1,39 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
-    //    "allowJs": true,
-    "declaration": true,
-    "declarationMap": true,
-    //"declarationDir": "dist/types"
-    "forceConsistentCasingInFileNames": true,
-    "lib": [
-      "es2015",
-      "dom"
-    ],
-    "module": "ES2015",
+    "target": "es6",
+    "module": "commonjs",
     "moduleResolution": "node",
-    "noImplicitAny": true,
-    "outDir": "./dist/lib",
-    "plugins": [
-      { "name": "typescript-tslint-plugin" }
-    ],
+    "declaration": true,
     "strict": true,
+    "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,
+    "strictNullChecks": true /* Enable strict null checks. */,
+    "strictFunctionTypes": true /* Enable strict checking of function types. */,
+    "noUnusedLocals": true /* Report errors on unused locals. */,
+    "noUnusedParameters": true /* Report errors on unused parameters. */,
+    "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
+    "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
     "sourceMap": true,
-    "target": "es5",
+    "outDir": "./dist/tsc/",
+    "types": [
+      "node",
+      "jest"
+    ],
+    "lib": [
+      "ES6",
+      "DOM"
+    ],
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "example",
-    "tests"
+    "**/tests/*.ts"
   ]
 }
