@@ -25,11 +25,11 @@ export class ErrorDto implements IErrorDTO {
         this.Properties = {};
     }
 
-    AssemblyName: string = '';
-    FullName: string = '';
-    Message: string = '';
+    AssemblyName = '';
+    FullName = '';
+    Message = '';
     Properties: IDictionaryDTO = {};
-    StackTrace: string = '';
+    StackTrace = '';
 }
 
 /**
@@ -37,19 +37,19 @@ export class ErrorDto implements IErrorDTO {
  */
 export class LogEntryDTO implements ILogEntryDTO {
     Exception?: string = undefined;
-    LogLevel: number = 1;
-    Message: string = '';
-    Source: string = '';
-    TimeStampUTC: string = new Date().toISOString();
+    LogLevel = 1;
+    Message = '';
+    Source = '';
+    TimeStampUTC = new Date().toISOString();
 }
 
 /**
  * Default implementation for @see IErrorReportDTO
  */
 export class ErrorReportDTO implements IErrorReportDTO {
-    CreatedAtUtc: string = new Date().toISOString();
-    ReportId: string = '';
-    EnvironmentName: string = 'Production';
+    CreatedAtUtc = new Date().toISOString();
+    ReportId = '';
+    EnvironmentName = 'Production';
     Exception: IErrorDTO = new ErrorDto();
     LogEntries?: LogEntryDTO[] = [];
     ContextCollections: IContextCollectionDTO[] = [];

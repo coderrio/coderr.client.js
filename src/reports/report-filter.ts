@@ -3,17 +3,16 @@ import { IErrorReportDTO } from '../contracts/dto';
 /**
  * Context for @see IReportFilter
  */
-export class ReportFilterContext {
-    constructor(public report: IErrorReportDTO) {
-        if (!report) {
-            throw new Error('Report must be specified.');
-        }
-    }
+export interface IReportFilterContext {
+    /**
+     * Report that was generated for the error.
+     */
+    report: IErrorReportDTO;
 
     /**
      * If the report can be uploaded to Coderr.
      */
-    canSubmitReport = true;
+    canSubmitReport: boolean;
 }
 
 /**
@@ -24,5 +23,5 @@ export interface IReportFilter {
      * Invoke filter.
      * @param context Used to make the decision.
      */
-    invoke(context: ReportFilterContext): void;
+    invoke(context: IReportFilterContext): void;
 }

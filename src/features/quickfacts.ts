@@ -15,7 +15,7 @@ export function addQuickFactToContext(
     context: IContextCollectionProviderContext,
     name: string,
     value: string
-) {
+): void {
     if (!context) {
         throw new Error('context must be specified');
     }
@@ -38,7 +38,7 @@ export function addQuickFactToContext(
  * @param name Display name
  * @param value Value for this entry
  */
-export function addQuickFact(collections: IContextCollection[], name: string, value: string) {
+export function addQuickFact(collections: IContextCollection[], name: string, value: string): void {
     if (!collections) {
         throw new Error('collections must be specified');
     }
@@ -51,6 +51,6 @@ export function addQuickFact(collections: IContextCollection[], name: string, va
         throw new Error('value must be specified');
     }
 
-    var collection = getCoderrCollection(collections);
+    const collection = getCoderrCollection(collections);
     collection.properties[`QuickFact.${name}`] = value;
 }

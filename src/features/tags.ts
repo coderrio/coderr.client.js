@@ -12,7 +12,7 @@ import {
  * @param collection Collection to add a tag to.
  * @param tagName Tag to add.
  */
-export function addTagToContext(context: IContextCollectionProviderContext, tagName: string) {
+export function addTagToContext(context: IContextCollectionProviderContext, tagName: string): void {
     if (!context) {
         throw new Error('context must be specified');
     }
@@ -33,7 +33,7 @@ export function addTagToContext(context: IContextCollectionProviderContext, tagN
  * @param collections An array of collections.
  * @param tagName Tag to add.
  */
-export function addTag(collections: IContextCollection[], tagName: string) {
+export function addTag(collections: IContextCollection[], tagName: string): void {
     if (!collections) {
         throw new Error('collections must be specified');
     }
@@ -42,8 +42,8 @@ export function addTag(collections: IContextCollection[], tagName: string) {
         throw new Error('tagName must be specified');
     }
 
-    var collection = getCoderrCollection(collections);
-    var tags = collection.properties['ErrTags'];
+    const collection = getCoderrCollection(collections);
+    const tags = collection.properties['ErrTags'];
     if (!tags) {
         collection.properties['ErrTags'] = tagName;
     } else {

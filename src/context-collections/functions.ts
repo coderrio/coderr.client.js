@@ -10,7 +10,7 @@ import { IContextCollection } from './interfaces';
 export function toCollection(
     collectionName: string,
     anyObject: any,
-    removeUndefined: boolean = false
+    removeUndefined = false
 ): IContextCollection {
     if (!collectionName) {
         throw new Error('collectionName must be specified');
@@ -20,7 +20,7 @@ export function toCollection(
         throw new Error('anyObject must be specified');
     }
 
-    var collection = { name: collectionName, properties: {} };
+    const collection = { name: collectionName, properties: {} };
     appendToCollection(collection, '', anyObject, removeUndefined);
     return collection;
 }
@@ -30,8 +30,8 @@ export function toCollection(
  * @param collections An array of all created collections.
  * @returns Collection.
  */
-export function getCoderrCollection(collections: IContextCollection[]) {
-    var col = collections.find((x) => x.name === 'CoderrData');
+export function getCoderrCollection(collections: IContextCollection[]): IContextCollection {
+    let col = collections.find((x) => x.name === 'CoderrData');
     if (col) {
         return col;
     }
@@ -57,49 +57,68 @@ export function appendToCollection(
     collection: IContextCollection,
     propertyPrefix: string,
     anyObject: any,
-    removeUndefined: boolean = false
+    removeUndefined = false
 ): void {
     if (!collection) {
         throw new Error('Collection must be specified');
     }
 
-    var guard: IGuardedObject[] = [];
+    const guard: IGuardedObject[] = [];
     appendToCollectionInner(collection, propertyPrefix, anyObject, guard, removeUndefined);
 }
 
+/**
+ * 
+ * @param collection 
+ * @param propertyPrefix 
+ * @param anyObject 
+ * @param guard 
+ * @param removeUndefined 
+ */
 function appendToCollectionInner(
     collection: IContextCollection,
     propertyPrefix: string,
     anyObject: any,
     guard: IGuardedObject[],
-    removeUndefined: boolean = false
+    removeUndefined = false
 ): void {
     const props = collection.properties;
 
-    function addItem(name: string, value: any, guard: IGuardedObject[]): boolean {
+    /**
+     * 
+     * @param name 
+     * @param value 
+     * @param guard 
+     */
+    function addItem(name: string, value: any, guard: IGuardedObject[]): void {
+
+        // already traversed that object.
         if (guard.findIndex((x) => x.value === value) > -1) {
-            return false;
+            return;
+        }
+
+        // angular filter.
+        if (name.indexOf('__zone') !== -1){
+            return;
         }
 
         guard.push({ name: name, value: value });
-        if (name.length > 20) {
-            props[name] = 'Too many nested levels: ' + guard.map((x) => x.name).join(' -> ');
-            return false;
+        // Means 5, since retriving values is one additional nesting.
+        if (guard.length > 6) {
+            props[name] = '[Too deep nesting]';
+            guard.pop();
+            return;
         }
 
         if (Array.isArray(value)) {
             value.forEach((item, index) => {
-                if (!addItem(`${name}[${index}]`, item, guard)) {
-                    return false;
-                }
-
-                return true;
+                addItem(`${name}[${index}]`, item, guard);
             });
         } else if (typeof value === 'function') {
             // ignore functions
         } else if (typeof value === 'object') {
             for (const key in value) {
-                if (!value.hasOwnProperty(key)) {
+                if (!Object.prototype.hasOwnProperty.call(value, key)) {
                     continue;
                 }
 
@@ -111,16 +130,14 @@ function appendToCollectionInner(
                     propName = key;
                 }
 
-                if (!addItem(propName, childValue, guard)) {
-                    return false;
-                }
+                addItem(propName, childValue, guard);
             }
         } else {
             let valueStr: string;
             if (typeof value === 'undefined') {
                 if (removeUndefined) {
                     guard.pop();
-                    return true;
+                    return;
                 }
                 valueStr = 'undefined';
             } else if (value === null) {
@@ -132,7 +149,6 @@ function appendToCollectionInner(
         }
 
         guard.pop();
-        return true;
     }
 
     addItem(propertyPrefix, anyObject, guard);

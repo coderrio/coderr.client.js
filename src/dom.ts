@@ -4,15 +4,16 @@ import {
     IContextCollectionProvider,
     ILogEntry,
 } from './context-collections/interfaces';
-import { Reporter } from './reports/reporting';
 import * as ua from 'ua-parser-js';
-import { Configuration } from './config/configuration';
 import { toCollection } from './context-collections';
+import { IConfiguration } from './config';
+import { IPipeline } from './config/configuration';
+
 /**
  * Used to provide access to DOM specific information when collecting telemetry.
  */
 export class DomErrorContext implements IContextCollectionProviderContext {
-    public contextType: string = 'DOM';
+    public contextType = 'DOM';
     public contextCollections: IContextCollection[] = [];
 
     constructor(
@@ -24,34 +25,45 @@ export class DomErrorContext implements IContextCollectionProviderContext {
     logEntries: ILogEntry[] = [];
 }
 
-var registered = false;
+let registered = false;
 
 /**
  * Tell Coderr to automatically report DOM errors to the server for further analysis.
- * @param configuration The config instance.
  */
-export function catchDomErrors(configuration: Configuration) {
+export function catchDomErrors(config: IConfiguration): void {
+    let pipeline: IPipeline;
+
     if (registered) {
         return;
     }
     registered = true;
 
+    config.plugins.push({
+        register(p: IPipeline) {
+            pipeline = p;
+        },
+    });
+
     document.addEventListener('error', (event: ErrorEvent) => {
         const domContext = new DomErrorContext(event.target, event.error, window.document, window);
-        Reporter.instance.reportByContext(domContext);
+        if (pipeline) {
+            pipeline.reportByContext(domContext);
+        }
     });
     window.addEventListener('error', (event: ErrorEvent) => {
         const domContext = new DomErrorContext(event.target, event.error, window.document, window);
-        Reporter.instance.reportByContext(domContext);
+        if (pipeline) {
+            pipeline.reportByContext(domContext);
+        }
     });
 
-    registerDomProviders(configuration.providers);
+    registerDomProviders(config.contextProviders);
 }
 
 /***
  * Register telemetry providers that collects DOM specific data (about the browser, document, screen size etc).
  */
-function registerDomProviders(providers: IContextCollectionProvider[]) {
+function registerDomProviders(providers: IContextCollectionProvider[]): void {
     providers.push(new DocumentCollectionProvider());
     providers.push(new NavigatorCollectionProvider());
     providers.push(new WindowProvider());
@@ -212,7 +224,7 @@ class WindowProvider implements IContextCollectionProvider {
             scrollY: window.scrollY,
             statusbar: window.statusbar,
             toolbar: window.toolbar,
-            top: window.top,
+            /*top: window.top,  window.top carries a lot of shit */
         });
         context.contextCollections.push(col);
     }

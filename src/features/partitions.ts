@@ -15,7 +15,7 @@ export function addPartitionToContext(
     context: IContextCollectionProviderContext,
     partitionKey: string,
     value: string
-) {
+): void {
     if (!context) {
         throw new Error('context must be specified');
     }
@@ -43,7 +43,7 @@ export function addPartition(
     collections: IContextCollection[],
     partitionKey: string,
     value: string
-) {
+): void {
     if (!collections) {
         throw new Error('collections must be specified');
     }
@@ -56,6 +56,6 @@ export function addPartition(
         throw new Error('value must be specified');
     }
 
-    var collection = getCoderrCollection(collections);
+    const collection = getCoderrCollection(collections);
     collection.properties[`ErrPartition.${partitionKey}`] = value;
 }

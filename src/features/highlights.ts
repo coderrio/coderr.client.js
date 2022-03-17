@@ -13,7 +13,7 @@ import {
 export function highlightCollectionInContext(
     context: IContextCollectionProviderContext,
     collectionName: string
-) {
+): void {
     if (!context) {
         throw new Error('context must be specified');
     }
@@ -31,7 +31,10 @@ export function highlightCollectionInContext(
  * @param context Context to append the data to.
  * @param collectionName Name of the collection to show.
  */
-export function highlightCollection(collections: IContextCollection[], collectionName: string) {
+export function highlightCollection(
+    collections: IContextCollection[],
+    collectionName: string
+): void {
     if (!collections) {
         throw new Error('collections must be specified');
     }
@@ -40,6 +43,6 @@ export function highlightCollection(collections: IContextCollection[], collectio
         throw new Error('collectionName must be specified');
     }
 
-    var collection = getCoderrCollection(collections);
+    const collection = getCoderrCollection(collections);
     collection.properties['HighlightCollections'] = collectionName;
 }

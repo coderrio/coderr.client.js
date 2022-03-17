@@ -2,12 +2,16 @@
  * @jest-environment jsdom
  */
 
-import { Configuration, IReportUploader, Reporter } from '../src/reporting';
+import { Reporter } from '../src/reports/reporting';
 import { catchDomErrors, DomErrorContext } from '../src/dom';
-import { IErrorReportDTO } from '../src/contracts';
+import { IErrorReportDTO } from '../src/contracts/dto';
+import { Configuration } from '../src/config/configuration';
+import { IReportUploader } from '../src/uploaders/interfaces';
 
-
-const config = new Configuration();
+let credentialsAssigner = (u:string, k:string, s?:string) => {
+    console.log(u,k,s);
+};
+const config = new Configuration(credentialsAssigner);
 let uploadedReport: IErrorReportDTO;
 var uploader: IReportUploader = {
     async upload(report: IErrorReportDTO): Promise<void> {
@@ -16,7 +20,6 @@ var uploader: IReportUploader = {
 }
 
 var reporter = new Reporter(config, uploader);
-Reporter.instance = reporter;
 
 describe("DOM error event", () => {
 
@@ -33,7 +36,7 @@ describe("DOM error event", () => {
                 window.document,
                 <Window><any>window
             );
-            Reporter.instance.reportByContext(domContext);
+            reporter.reportByContext(domContext);
         }
 
         var collection = uploadedReport.ContextCollections.find(x => x.Name == "document");

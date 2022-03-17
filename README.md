@@ -2,7 +2,7 @@
 
 This library is currently available as a release candidate. Feel free to try it, and please give us feedback.
 
-![](./docs/telemetry.gif)
+![](https://coderr.io/docs/images/libraries/js/core/error.gif)
 
 https://coderr.io
 
@@ -13,24 +13,24 @@ This library supports NodeJS and the browser (es6 module). There are also integr
 
 Download this package:
 
-```js
+```javascript
 npm -I coderr.client
 ```
 
 Add it to your application:
 
-```js
-import * as coderr from "coderr.client";
+```javascript
+import { err } from "coderr.client";
 
-coderr.configure("https://reporting.coderr.io", "yourAppKey");
+err.configuration.credentials("https://reporting.coderr.io", "yourAppKey");
 ```
 
 DOM errors will now automatically be reported (for browser-based applications).
 
 To report errors:
 
-```js
-import * as coderr from "coderr.client";
+```javascript
+import { err } from "coderr.client";
 
 try {
     // Do something
@@ -39,7 +39,7 @@ try {
 }
 catch (e) {
     // You can attach any kind of data.
-    coderr.report(e, {userId: 11, address: { City: "Falun" }});
+    err.report(e, {userId: 11, address: { City: "Falun" }});
 }
 ```
 
@@ -48,20 +48,20 @@ catch (e) {
 Coderr detects the environment (production/development) automatically when running in node,
 for all other types of applications, specify it:
 
-```js
-import * as coderr from "coderr.client";
+```javascript
+import { err } from "coderr.client";
 
-coderr.configuration.environment = 'production';
+err.configuration.environment = 'production';
 ```
 
 ### Application version
 
 To see which application version an error exist, specify it:
 
-```js
-import * as coderr from "coderr.client";
+```javascript
+import { err } from "coderr.client";
 
-coderr.configuration.applicationVersion = '1.1.3';
+err.configuration.applicationVersion = '1.1.3';
 ```
 
 
@@ -69,22 +69,23 @@ coderr.configuration.applicationVersion = '1.1.3';
 
 You can, for instance, install the Express package:
 
-```js
+```javascript
 npm -I coderr.client.expressjs
 ```
 
 And then activate it:
 
-```js
-import { credentials } from "coderr.client";
-import { HttpError, errorMiddleware } from "coderr.client.expressjs";
+```javascript
+import { err } from "coderr.client";
+import { activatePlugin, errorMiddleware } from "coderr.client.expressjs";
 
 
-credentials("https://coderr.io", "yourAppKey", "yourSharedSecret");
+activatePlugin(err.configuration);
+err.configuration.credentials("https://coderr.io", "yourAppKey", "yourSharedSecret");
 ```
 
 Finally, activate the error middleware as the last middleware:
 
-```
+```javascript
 app.use(errorMiddleware);
 ```

@@ -38,7 +38,7 @@ export class HttpsUploader implements IReportUploader {
         };
 
         // To allow self signed certificates.
-        var env = process.env.NODE_ENV || 'development';
+        const env = process.env.NODE_ENV || 'development';
         if (env === 'development') {
             options.strictSSL = false;
             options.rejectUnauthorized = false;
@@ -57,7 +57,7 @@ export class HttpsUploader implements IReportUploader {
                     );
                 }
 
-                let body: Buffer[] = [];
+                const body: Buffer[] = [];
                 response.on('data', (chunk: any) => {
                     body.push(chunk);
                 });

@@ -8,17 +8,14 @@ export * from './main';
 
 m.setUploaderFactory((url: string, key: string) => new FetchUploader(url, key));
 
-catchDomErrors(m.config);
+catchDomErrors(m.err.configuration);
 
 (window as any).coderr = {
-    configuration: m.config,
     ErrorReportDTO: imps.ErrorReportDTO,
     LogEntryDTO: imps.LogEntryDTO,
     ErrorDTO: imps.ErrorDto,
     toCollection: col.toCollection,
     appendToCollection: col.appendToCollection,
     getCoderrCollection: col.getCoderrCollection,
-    credentials: m.credentials,
-    report: m.report,
-    reportByContext: m.reportByContext,
+    err: m.err,
 };
